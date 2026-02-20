@@ -79,26 +79,16 @@ void ReadInput()
   do key = Console.ReadKey(true).Key;
   while (Console.KeyAvailable);
 
-  if (key == ConsoleKey.UpArrow && direction.Y != 1)
-  {
-    direction.X = 0;
-    direction.Y = -1;
-  }
-  else if (key == ConsoleKey.DownArrow && direction.Y != -1)
-  {
-    direction.X = 0;
-    direction.Y = 1;
-  }
-  else if (key == ConsoleKey.RightArrow && direction.X != -1)
-  {
-    direction.X = 1;
-    direction.Y = 0;
-  }
-  else if (key == ConsoleKey.LeftArrow && direction.X != 1)
-  {
-    direction.X = -1;
-    direction.Y = 0;
-  }
+  var input = key switch {
+    ConsoleKey.UpArrow => new Vector2() { Y = -1 },
+    ConsoleKey.DownArrow => new Vector2() { Y = 1 },
+    ConsoleKey.RightArrow => new Vector2() { X = 1 },
+    ConsoleKey.LeftArrow => new Vector2() { X = -1 },
+  };
+
+  if (input.Equals(direction)) return;
+
+  direction = input;
 }
 
 void MoveSnake()

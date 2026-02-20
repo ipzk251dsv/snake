@@ -53,11 +53,7 @@ void Loose()
 bool CanDie()
 {
   var head = snake[0];
-  foreach (var part in snake.Skip(1))
-    if (part.X == head.X && part.Y == head.Y)
-      return true;
-
-  return false;
+  return snake.Skip(1).Any(part => part.Equals(head));
 }
 
 void Grow()
@@ -72,7 +68,7 @@ void Grow()
 bool CanEat()
 {
   var head = snake[0];
-  return head.X == food.X && head.Y == food.Y;
+  return head.Equals(food);
 }
 
 void ReadInput()
@@ -133,11 +129,7 @@ void RespawnFood()
     food.X = Random.Shared.Next(0, FIELD);
     food.Y = Random.Shared.Next(0, FIELD);
 
-    done = true;
-
-    foreach (var part in snake)
-      if (food.X == part.X && food.Y == part.Y)
-        done = false;
+    done = !snake.Any(part => part.Equals(food));
   }
   while (!done);
 }
@@ -172,4 +164,9 @@ class Vector2
 {
   public int X;
   public int Y;
+
+  public bool Equals(Vector2 other)
+  {
+    return X == other.X && Y == other.Y;
+  }
 }

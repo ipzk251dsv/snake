@@ -5,6 +5,9 @@ using System.Threading;
 
 const int FIELD = 12;
 
+var renderer = (IRenderer)new ConsoleRenderer();
+var inputProvider = (IInputProvider)new ConsoleInputProvider();
+
 var food = new Vector2();
 var snake = new List<Vector2>() {
   new Vector2()
@@ -14,7 +17,6 @@ var direction = new Vector2() {
 };
 var speed = 1.0f;
 
-Console.CursorVisible = false;
 RespawnFood();
 
 while (true)
@@ -43,11 +45,8 @@ while (true)
 
 void Loose()
 {
-  Console.Clear();
-  Console.ResetColor();
-  Console.CursorVisible = true;
-  Console.WriteLine($"Your score: {snake.Count}");
-  Console.ReadLine();
+  renderer.Clear();
+  renderer.ShowMessage($"Your score: {snake.Count}");
 }
 
 bool CanDie()
@@ -73,17 +72,14 @@ bool CanEat()
 
 void ReadInput()
 {
-  if (!Console.KeyAvailable) return;
-
-  ConsoleKey key;
-  do key = Console.ReadKey(true).Key;
-  while (Console.KeyAvailable);
+  var key = inputProvider.GetKey();
+  if (key == null) return;
 
   var input = key switch {
-    ConsoleKey.UpArrow => new Vector2() { Y = -1 },
-    ConsoleKey.DownArrow => new Vector2() { Y = 1 },
-    ConsoleKey.RightArrow => new Vector2() { X = 1 },
-    ConsoleKey.LeftArrow => new Vector2() { X = -1 },
+    Key.UpArrow => new Vector2() { Y = -1 },
+    Key.DownArrow => new Vector2() { Y = 1 },
+    Key.RightArrow => new Vector2() { X = 1 },
+    Key.LeftArrow => new Vector2() { X = -1 },
   };
 
   if (input.Equals(direction)) return;
@@ -126,28 +122,21 @@ void RespawnFood()
 
 void Redraw()
 {
-  Console.Clear();
+  renderer.Clear();
 
-  Draw(ConsoleColor.Red, food.X + 1, food.Y + 1);
+  renderer.DrawPoint(Color.Red, food.X + 1, food.Y + 1);
 
-  foreach (var part in snake) Draw(ConsoleColor.Green, part.X + 1, part.Y + 1);
+  foreach (var part in snake) renderer.DrawPoint(Color.Green, part.X + 1, part.Y + 1);
 
-  for (var x = 0; x < FIELD + 2; ++x) Draw(ConsoleColor.DarkGray, x, 0);
+  for (var x = 0; x < FIELD + 2; ++x) renderer.DrawPoint(Color.DarkGray, x, 0);
 
   for (var y = 0; y < FIELD + 2; ++y)
   {
-    Draw(ConsoleColor.DarkGray, 0, y);
-    Draw(ConsoleColor.DarkGray, FIELD + 1, y);
+    renderer.DrawPoint(Color.DarkGray, 0, y);
+    renderer.DrawPoint(Color.DarkGray, FIELD + 1, y);
   }
 
-  for (var x = 0; x < FIELD + 2; ++x) Draw(ConsoleColor.DarkGray, x, FIELD + 1);
-}
-
-void Draw(ConsoleColor color, int x, int y)
-{
-  Console.SetCursorPosition(x * 2, y);
-  Console.ForegroundColor = color;
-  Console.Write("██");
+  for (var x = 0; x < FIELD + 2; ++x) renderer.DrawPoint(Color.DarkGray, x, FIELD + 1);
 }
 
 class Vector2

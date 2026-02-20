@@ -1,0 +1,175 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+
+const int FIELD = 12;
+
+var food = new Vector2();
+var snake = new List<Vector2>() {
+  new Vector2()
+};
+var direction = new Vector2() {
+  X = 1
+};
+var speed = 1.0f;
+
+Console.CursorVisible = false;
+RespawnFood();
+
+while (true)
+{
+  ReadInput();
+
+  if (CanEat())
+  {
+    RespawnFood();
+    Grow();
+    speed += 0.01f;
+  }
+
+  MoveSnake();
+
+  if (CanDie())
+  {
+    Loose();
+    break;
+  }
+
+  Redraw();
+
+  Thread.Sleep((int)Math.Round(250 / speed));
+}
+
+void Loose()
+{
+  Console.Clear();
+  Console.ResetColor();
+  Console.CursorVisible = true;
+  Console.WriteLine($"Your score: {snake.Count}");
+  Console.ReadLine();
+}
+
+bool CanDie()
+{
+  var head = snake[0];
+  foreach (var part in snake.Skip(1))
+    if (part.X == head.X && part.Y == head.Y)
+      return true;
+
+  return false;
+}
+
+void Grow()
+{
+  var last = snake[snake.Count - 1];
+  snake.Add(new Vector2() {
+    X = last.X,
+    Y = last.Y
+  });
+}
+
+bool CanEat()
+{
+  var head = snake[0];
+  return head.X == food.X && head.Y == food.Y;
+}
+
+void ReadInput()
+{
+  if (!Console.KeyAvailable) return;
+
+  ConsoleKey key;
+  do key = Console.ReadKey(true).Key;
+  while (Console.KeyAvailable);
+
+  if (key == ConsoleKey.UpArrow && direction.Y != 1)
+  {
+    direction.X = 0;
+    direction.Y = -1;
+  }
+  else if (key == ConsoleKey.DownArrow && direction.Y != -1)
+  {
+    direction.X = 0;
+    direction.Y = 1;
+  }
+  else if (key == ConsoleKey.RightArrow && direction.X != -1)
+  {
+    direction.X = 1;
+    direction.Y = 0;
+  }
+  else if (key == ConsoleKey.LeftArrow && direction.X != 1)
+  {
+    direction.X = -1;
+    direction.Y = 0;
+  }
+}
+
+void MoveSnake()
+{
+  var last = snake[snake.Count - 1];
+  for (var i = (snake.Count - 1) - 1; i >= 0; --i)
+  {
+    var part = snake[i];
+    last.X = part.X;
+    last.Y = part.Y;
+    last = part;
+  }
+
+  last.X += direction.X;
+  last.Y += direction.Y;
+
+  if (last.X >= FIELD) last.X = 0;
+  else if (last.X < 0) last.X = FIELD - 1;
+  if (last.Y >= FIELD) last.Y = 0;
+  else if (last.Y < 0) last.Y = FIELD - 1;
+}
+
+void RespawnFood()
+{
+  bool done;
+  do
+  {
+    food.X = Random.Shared.Next(0, FIELD);
+    food.Y = Random.Shared.Next(0, FIELD);
+
+    done = true;
+
+    foreach (var part in snake)
+      if (food.X == part.X && food.Y == part.Y)
+        done = false;
+  }
+  while (!done);
+}
+
+void Redraw()
+{
+  Console.Clear();
+
+  Draw(ConsoleColor.Red, food.X + 1, food.Y + 1);
+
+  foreach (var part in snake) Draw(ConsoleColor.Green, part.X + 1, part.Y + 1);
+
+  for (var x = 0; x < FIELD + 2; ++x) Draw(ConsoleColor.DarkGray, x, 0);
+
+  for (var y = 0; y < FIELD + 2; ++y)
+  {
+    Draw(ConsoleColor.DarkGray, 0, y);
+    Draw(ConsoleColor.DarkGray, FIELD + 1, y);
+  }
+
+  for (var x = 0; x < FIELD + 2; ++x) Draw(ConsoleColor.DarkGray, x, FIELD + 1);
+}
+
+void Draw(ConsoleColor color, int x, int y)
+{
+  Console.SetCursorPosition(x * 2, y);
+  Console.ForegroundColor = color;
+  Console.Write("██");
+}
+
+class Vector2
+{
+  public int X;
+  public int Y;
+}
